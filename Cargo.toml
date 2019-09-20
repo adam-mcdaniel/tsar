@@ -1,0 +1,13 @@
+[package]
+name = "tsar"
+version = "0.1.0"
+authors = ["adam-mcdaniel <adam.mcdaniel17@gmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "tsar"
+path = "src/bin.rs"
+
+[dependencies]
+pest = "2.1"
+pest_derive = "2.1"

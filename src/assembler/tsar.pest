@@ -1,0 +1,273 @@
+
+expr = { (assignment ~ ";") | class_def | function_def | while_loop | if_then_else | (value ~ ";") }
+assignment = { name ~ "=" ~ value }
+
+name = { scoped_name | (identifier ~ dot_name+) | (identifier ~ indexed_name+) | identifier }
+
+literal = { foreign_function_literal | string_literal | number_literal | function }
+
+
+string_literal = @{ "\"" ~ literal_char* ~ "\"" }
+literal_char = { escape_sequence | (!"\"" ~ ANY) }
+escape_sequence = _{ "\\\\" | "\\\"" | "\\\'" | "\\n" | "\\r" | "\\t" | "\\0" }
+
+number_literal = @{ "-"? ~ ("0" | (nonzero ~ digit*)) }
+digit = _{ "0" | nonzero | "_" }
+nonzero = _{ '1'..'9' }
+
+foreign_function_literal = { "@" ~ identifier }
+
+
+identifier = @{ !keyword ~ (alpha | "_") ~ (alphanumeric | "_")* }
+
+while_loop = { "while" ~ value ~ suite }
+if_then_else = {"if" ~ value ~ suite ~ ("else" ~ suite)? }
+suite = { "{" ~ expr* ~ value? ~ "}" }
+
+group = { "(" ~ value ~ ")" }
+
+
+keyword = {
+    "while" | "if" | "else" | "fn" | "impl" | "mod" | "use"
+}
+
+
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+alphanumeric = _{ alpha | '0'..'9' }
+
+WHITESPACE = _{ (" " | "\t" | "\u{000C}" | "\r" | "\n")+ }
+COMMENT = _{ block_comment | line_comment }
+line_comment = _{ "//" ~ (!("\r" | "\n") ~ ANY)* ~ ("\n" | "\r\n" | "\r" | EOI) }
+block_comment = _{ "/*" ~ ((!("*/") ~ ANY) | block_comment)* ~ "*/" }
+
+scoped_name = { identifier ~ ("::" ~ identifier)+ }
+dot_name = { "." ~ identifier }
+indexed_name = { "[" ~ value ~ "]" }
+call = { "(" ~ (value ~ ",")* ~ value? ~ ")" }
+
+args = { "(" ~ (identifier ~ ",")* ~ identifier? ~ ")" }
+function = { (identifier | args) ~
+            (("=>" ~ value) | ("=>" ~ suite))
+            }
+
+head = { literal | scoped_name | identifier | group }
+tail = { call | dot_name | indexed_name }
+
+
+modulus = {"%"}
+multiply = {"*"}
+divide = {"/"}
+add = {"+"}
+subtract = {"-"}
+equal = {"is"}
+not_equal = {"isnt"}
+op = { modulus | multiply | divide | add | subtract | equal | not_equal }
+
+math = { op ~ value }
+
+value = {
+    ((group ~ tail*) | (head ~ tail*)) ~ math?
+}
+
+function_def = { "fn" ~ (scoped_name | identifier) ~ args ~ (("=>" ~ value) | suite)}
+class_def = { "impl" ~ (scoped_name | identifier) ~ "{" ~ function_def* ~ "}"}
+
+module = { "mod" ~ (scoped_name | identifier) }
+import_tail = { "{" ~ (identifier ~ ",")* ~ identifier? ~ "}" }
+import = { "use" ~ ((identifier ~ ("::" ~ identifier)* ~ "::" ~ import_tail) | scoped_name) }
+
+program = { SOI ~ (import ~ ";")* ~ (module ~ ";")* ~ expr* ~ EOI }
+
+
+// use honeycomb::{
+//     atoms::{eof, opt, rec, seq_no_ws},
+//     language::{array, identifier, number, string},
+//     Parser,
+// };
+
+// use alloc::string::{String, ToString};
+// use alloc::boxed::Box;
+// use alloc::vec::Vec;
+
+// use crate::tokens::{
+//     Assignment, Call, DotName, Expr, FirstValue, Function, FunctionDef, Identifier, Import, Math,
+//     IndexedName, List, Literal, Module, Number, Program, ScopedName, SecondValue, Value, ClassDef
+// };
+
+// pub fn scoped_name() -> Parser<ScopedName> {
+//     (identifier() & ((seq_no_ws("::") >> identifier()) * (1..)))
+//         - |(base, rest)| {
+//             let mut vec = vec![];
+//             vec.push(base);
+//             vec.extend(rest);
+
+//             ScopedName(vec)
+//         }
+// }
+
+// pub fn dot_name() -> Parser<DotName> {
+//     (seq_no_ws(".") >> identifier()) - DotName
+// }
+
+// pub fn indexed_name() -> Parser<IndexedName> {
+//     (seq_no_ws("[") >> identifier() << seq_no_ws("]")) - IndexedName
+// }
+
+// pub fn call() -> Parser<Call> {
+//     array("(", rec(value), ")") - Call
+// }
+
+// pub fn num() -> Parser<Number> {
+//     number() - Number
+// }
+
+// pub fn list() -> Parser<List> {
+//     array("[", rec(value), "]") - List
+// }
+
+// pub fn str() -> Parser<String> {
+//     string()
+// }
+
+// pub fn function() -> Parser<Function> {
+//     (((identifier() - |i| vec![i]) | (array("(", identifier(), ")")))
+//         & ((seq_no_ws("=>") >> (expr() - |i| vec![i]))
+//             | (seq_no_ws("=>") >> seq_no_ws("{") >> body() << seq_no_ws("}"))))
+//         - |(args, body)| {
+//             Function(
+//                 args.iter()
+//                     .map(|i| Identifier(i.clone()))
+//                     .collect::<Vec<Identifier>>(),
+//                 body,
+//             )
+//         }
+// }
+
+// pub fn literal() -> Parser<Literal> {
+//     ((num() - Literal::Number)
+//         | (list() - Literal::List)
+//         | (str() - Literal::String)
+//         | (rec(function) - Literal::Function))
+// }
+
+
+// pub fn first_value() -> Parser<FirstValue> {
+//     (literal() - FirstValue::Literal)
+//         | (scoped_name() - FirstValue::ScopedName)
+//         | (identifier() - Identifier - FirstValue::Identifier)
+//         | ((seq_no_ws("(") >> rec(value) << seq_no_ws(")")) - |v| FirstValue::Group(Box::new(v)))
+// }
+
+// pub fn second_value() -> Parser<SecondValue> {
+//     call() - SecondValue::Call
+//         | dot_name() - SecondValue::DotName
+//         | indexed_name() - SecondValue::IndexedName
+// }
+
+// pub fn value() -> Parser<Value> {
+//     (((seq_no_ws("(") >> rec(value) << seq_no_ws(")"))
+//     | ((first_value() & (second_value() * (..))) - |(first, rest)| Value(first, rest)))
+//     & (opt(((seq_no_ws("%")) & rec(value))
+//         | ((seq_no_ws("*")) & rec(value))
+//         | ((seq_no_ws("/")) & rec(value))
+//         | ((seq_no_ws("+")) & rec(value))
+//         | ((seq_no_ws("-")) & rec(value))
+//         | ((seq_no_ws("isnt")) & rec(value))
+//         | ((seq_no_ws("is")) & rec(value))
+//         )))
+//         - |(first, opt_math)| {
+//             match opt_math {
+//                 Some((s, v)) => match (s.as_ref(), v) {
+//                     ("+", any) => Value(FirstValue::Math(Math::Add(Box::new(first), Box::new(any))), vec![]),
+//                     ("-", any) => Value(FirstValue::Math(Math::Subtract(Box::new(first), Box::new(any))), vec![]),
+//                     ("/", any) => Value(FirstValue::Math(Math::Divide(Box::new(first), Box::new(any))), vec![]),
+//                     ("*", any) => Value(FirstValue::Math(Math::Multiply(Box::new(first), Box::new(any))), vec![]),
+//                     ("%", any) => Value(FirstValue::Math(Math::Remainder(Box::new(first), Box::new(any))), vec![]),
+//                     ("is", any) => Value(FirstValue::Math(Math::Is(Box::new(first), Box::new(any))), vec![]),
+//                     ("isnt", any) => Value(FirstValue::Math(Math::Isnt(Box::new(first), Box::new(any))), vec![]),
+//                     (_, _) => unreachable!()
+//                 },
+//                 _ => first
+//             }
+//         }
+// }
+
+// pub fn function_def() -> Parser<FunctionDef> {
+//     ((seq_no_ws("fn")
+//         >> (((scoped_name() - FirstValue::ScopedName) | (identifier() - Identifier - FirstValue::Identifier))
+//             & (array("(", identifier(), ")"))))
+//         & ((seq_no_ws("{") >> body() << seq_no_ws("}"))
+//             | (seq_no_ws("=>") >> expr() - (|e| vec![e]) << seq_no_ws(";"))))
+//         - |((name, args), body)| {
+//             FunctionDef(
+//                 name,
+//                 Function(
+//                     args.iter()
+//                         .map(|i| Identifier(i.clone()))
+//                         .collect::<Vec<Identifier>>(),
+//                     body,
+//                 ),
+//             )
+//         }
+// }
+
+// pub fn class_def() -> Parser<ClassDef> {
+//     ((seq_no_ws("impl") >> ((scoped_name() - FirstValue::ScopedName) | (identifier() - Identifier - FirstValue::Identifier)))
+//         & (seq_no_ws("{") >> function_def() * (..) << seq_no_ws("}")))
+//         - |(name, methods)| ClassDef(name, methods)
+// }
+
+// pub fn expr() -> Parser<Expr> {
+//     (((value() << seq_no_ws("=")) & value()) - (|(l, r)| Assignment(l, r)) - Expr::Assignment)
+//         | (value() - Expr::Value)
+// }
+
+// pub fn body() -> Parser<Vec<Expr>> {
+//     ((((rec(function_def) - Expr::FunctionDef) | (rec(class_def) - Expr::ClassDef) | (expr() << seq_no_ws(";"))) * (..)) & opt(expr()))
+//         - |(mut body, ret)| {
+//             if let Some(value) = ret {
+//                 body.push(value);
+//             }
+//             body
+//         }
+// }
+
+// pub fn module() -> Parser<Module> {
+//     (seq_no_ws("mod") >> (scoped_name() | (identifier() - |i| ScopedName(vec![i])))) - Module
+// }
+
+// pub fn import() -> Parser<Import> {
+//     let import_body = array("{", identifier(), "}");
+
+//     seq_no_ws("use")
+//         >> ((((((identifier() & ((seq_no_ws("::") >> identifier()) * (..))) << seq_no_ws("::"))
+//             - |(base, rest)| {
+//                 let mut vec = vec![];
+//                 vec.push(base);
+//                 vec.extend(rest);
+
+//                 ScopedName(vec)
+//             })
+//             & import_body)
+//             - |(base, body)| Import {
+//                 module: base,
+//                 imports: body,
+//             })
+//             | ((identifier() & ((seq_no_ws("::") >> identifier()) * (1..)))
+//                 - |(base, rest)| {
+//                     let mut vec = vec![];
+//                     vec.push(base);
+//                     vec.extend(rest[..rest.len() - 1].to_vec());
+
+//                     Import {
+//                         module: ScopedName(vec),
+//                         imports: vec![rest[rest.len() - 1].clone()],
+//                     }
+//                 }))
+// }
+
+// pub fn program() -> Parser<Program> {
+//     (((((import() << seq_no_ws(";")) * (..)) & ((module() << seq_no_ws(";")) * (..))) & body())
+//         << eof())
+//         - |((imports, modules), exprs)| Program(imports, modules, exprs)
+// }
