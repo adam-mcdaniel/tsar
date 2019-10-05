@@ -1,6 +1,5 @@
 use super::lower::Lower;
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct ScopedName(pub Vec<String>);
 
@@ -37,7 +36,7 @@ impl Lower for Import {
         let mut result = "".to_string();
         for item in imports {
             result += &format!(
-                "{item} = {module}[\"{item}\"]\n",
+                "{item} = {module}[\"{item}\"];\n",
                 module = module.lower(),
                 item = item
             );
@@ -108,7 +107,15 @@ pub struct List(pub Vec<Value>);
 
 impl Lower for List {
     fn lower(&self) -> String {
-        String::from("list()")
+        let List(list) = self;
+        String::from(format!(
+            "list({}, {})",
+            list.len(),
+            list.iter()
+                .map(Lower::lower)
+                .collect::<Vec<String>>()
+                .join(", ")
+        ))
     }
 }
 
@@ -212,7 +219,7 @@ impl Lower for FirstValue {
         format!(
             "{}",
             match self {
-                Self::Group(g) => format!("({})", (*g).clone().lower()),
+                Self::Group(g) => format!("{}", (*g).clone().lower()),
                 Self::ScopedName(s) => format!("{}", s.lower()),
                 Self::Identifier(i) => format!("{}", i.lower()),
                 Self::Literal(l) => format!("{}", l.lower()),
@@ -313,7 +320,7 @@ impl Lower for Assignment {
         let Assignment(left, right) = self;
         format!(
             "{} = {}",
-            left.lower().replace("(", "").replace(")", ""),
+            left.lower().replacen("(", "", 1).replacen(")", "", 1),
             right.lower()
         )
     }
@@ -325,6 +332,14 @@ pub enum Expr {
     ClassDef(ClassDef),
     Assignment(Assignment),
     FunctionDef(FunctionDef),
+    IfStatement(Value, Vec<Expr>, Vec<Expr>),
+    WhileLoop(Value, Vec<Expr>),
+    ForLoop {
+        counter: Identifier,
+        element: Identifier,
+        list: Value,
+        body: Vec<Expr>,
+    },
 }
 
 impl Lower for Expr {
@@ -334,6 +349,51 @@ impl Lower for Expr {
             Self::ClassDef(c) => c.lower(),
             Self::Assignment(a) => a.lower() + ";",
             Self::FunctionDef(f) => f.lower(),
+            Self::IfStatement(condition, then_body, else_body) => {
+                let then_str = then_body
+                    .iter()
+                    .map(|v| v.lower())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                let else_str = else_body
+                    .iter()
+                    .map(|v| v.lower())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                format!(
+                    "if {} {{ {} }} else {{ {} }}",
+                    condition.lower(),
+                    then_str,
+                    else_str
+                )
+            }
+            Self::WhileLoop(condition, body) => {
+                let body_str = body
+                    .iter()
+                    .map(|v| v.lower())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                format!("while ({}) {{ {} }}", condition.lower(), body_str)
+            }
+            Self::ForLoop {
+                counter,
+                element,
+                list,
+                body,
+            } => {
+                let body_str = body
+                    .iter()
+                    .map(|v| v.lower())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                format!(
+                    "for {counter}, {element} in ({list}) {{ {body} }}",
+                    counter = counter.lower(),
+                    element = element.lower(),
+                    list = list.lower(),
+                    body = body_str
+                )
+            }
         }
     }
 }
