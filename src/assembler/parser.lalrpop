@@ -1,0 +1,314 @@
+
+use crate::assembler::{
+    lower::Lower,
+    tokens::{ClassDef, Module, Program, Assignment, Identifier, Value, List, FirstValue, SecondValue, Literal, IndexedName, DotName, Call, Number, Math, ScopedName, Function, Expr, FunctionDef, Import}
+};
+
+use lalrpop_util::ParseError;
+
+grammar;
+
+
+
+
+extern {
+    type Location = usize;
+    type Error = String;
+}
+
+
+pub Str: String = <s:r#""(\\.|[^"])*""#> => String::from(&s[1..s.len()-1]);
+
+pub Num: String = {
+    r"([0-9]+([.][0-9]*)?|[.][0-9]+)" => <>.to_string(),
+}
+
+pub Program: Program = {
+    <imports: (<Import> ";")*> <modules: (<Module> ";")*> <body: Body> => Program(imports, modules, body)
+}
+
+pub Body: Vec<Expr> = {
+    <first: Expr*> <last: Value?> => {
+        let mut result = first;
+        if let Some(val) = last {
+            result.push(Expr::Value(val));
+        }
+        result
+    }
+}
+
+pub Module: Module = {
+    "mod" <module: ScopedName> => {
+        Module(module)
+    },
+    "mod" <ident: Ident> => {
+        let Identifier(name) = ident;
+        Module(ScopedName(vec![name]))
+    }
+}
+
+pub Import: Import = {
+    "use" <import: ScopedName> => {
+        let ScopedName(names) = import;
+        let module = ScopedName(names[..names.len()-1].to_vec());
+        let import_name = names[names.len()-1].clone();
+        Import {
+            module,
+            imports: vec![import_name]
+        }
+    },
+    "use" <module: ScopedName> "::" <import_names: List<"{", Ident, ",", "}">> => {
+        let imports = import_names.iter().map(|i| {
+            let Identifier(s) = i;
+            s.to_string()
+        }).collect::<Vec<String>>();
+
+        Import {
+            module,
+            imports
+        }
+    }
+}
+
+pub Op: String = {
+    "*" => String::from("*"),
+    "/" => String::from("/"),
+    "%" => String::from("%"),
+    "+" => String::from("+"),
+    "-" => String::from("-"),
+    "is" => String::from("is"),
+    "isnt" => String::from("isnt"),
+}
+
+pub Ident: Identifier = {
+    r"[a-zA-Z_][a-zA-Z0-9_]*" => Identifier(<>.to_string())
+}
+
+pub Expr: Expr = {
+    FunctionDef => Expr::FunctionDef(<>),
+    ClassDef => Expr::ClassDef(<>),
+    IfStatement => <>,
+    WhileLoop => <>,
+    ForLoop => <>,
+    <v:Value> ";" => Expr::Value(v),
+    <name:Value> "=" <val:Value> ";" =>? {
+        let convert_to_indexed_name = |head, tail_list: Vec<SecondValue>| -> Result<Value, ()> {
+            if let FirstValue::Identifier(_) = head {
+                if tail_list.is_empty() { return Ok(Value(head, vec![])); }
+
+                let mut tail_result = vec![];
+                for name in &tail_list {
+                    match name {
+                        SecondValue::IndexedName(n) => tail_result.push(name.clone()),
+                        SecondValue::DotName(DotName(n)) => tail_result.push(SecondValue::IndexedName(IndexedName(Literal::String(n.to_string()).lower()))),
+                        otherwise => return Err(())
+                    }
+                }
+                return Ok(Value(head, tail_result)); 
+            } else if let FirstValue::ScopedName(_) = head {
+                return Ok(Value(head, vec![]));
+            }
+            return Err(());
+        };
+
+        let Value(head, tail_list) = name.clone();
+        match convert_to_indexed_name(head, tail_list) {
+            Ok(n) => Ok(Expr::Assignment(Assignment(n, val))),
+            Err(_) => Err(ParseError::User { error: format!("Assignment to invalid name '{}'", name.lower()) })
+        }
+    },
+}
+
+
+pub ForLoop: Expr = {
+    "for" <counter:Ident> "," <element:Ident> "in" <list:Value> "{" <body:Body> "}" =>? {
+        if element.lower() != counter.lower() {
+            Ok(Expr::ForLoop{<>})
+        } else {
+            Err(ParseError::User { error: format!("Index variable '{}' and element variable '{}' are the same", counter.lower(), element.lower()) })
+        }
+    }
+}
+
+pub WhileLoop: Expr = {
+    "while" <condition:Value> "{" <body:Body> "}" => Expr::WhileLoop(<>)
+}
+
+pub IfStatement: Expr = {
+    "if" <condition:Value> "{" <then_body:Body> "}" <else_clause:("else" "{" <Body> "}")?> => {
+        match else_clause {
+            Some(clause) => {
+                Expr::IfStatement(condition, then_body, clause)
+            }
+            None => {
+                Expr::IfStatement(condition, then_body, vec![])
+            }
+        }
+    }
+}
+
+pub ClassDef: ClassDef = {
+    "impl" <name: StaticName> "{" <defs: FunctionDef*> "}" => {
+        ClassDef(name, defs)
+    }
+}
+
+
+pub Value: Value = {
+    <val:(HeadValue TailValue*)> <tail:(<Op> <HeadValue> <TailValue*>)*> => {
+        if tail.is_empty() {
+            Value(val.0, val.1)
+        } else {
+            let to_value = |math| Value(FirstValue::Math(math), vec![]);
+            let add = |a, b: &Value| to_value(Math::Add(Box::new(a), Box::new(b.clone())));
+            let sub = |a, b: &Value| to_value(Math::Subtract(Box::new(a), Box::new(b.clone())));
+            let mul = |a, b: &Value| to_value(Math::Multiply(Box::new(a), Box::new(b.clone())));
+            let rem = |a, b: &Value| to_value(Math::Remainder(Box::new(a), Box::new(b.clone())));
+            let div = |a, b: &Value| to_value(Math::Divide(Box::new(a), Box::new(b.clone())));
+            let is = |a, b: &Value| to_value(Math::Is(Box::new(a), Box::new(b.clone())));
+            let isnt = |a, b: &Value| to_value(Math::Isnt(Box::new(a), Box::new(b.clone())));
+
+            let mut result = vec![Value(val.0, val.1)];
+            for (_, a, b) in tail.iter() {
+                let value = &Value(a.clone(), b.clone());
+                result.push(value.clone());
+            }
+            
+            for (i, (op, a, b)) in tail.iter().enumerate() {
+                match op.as_str() {
+                    "*" => {
+                        result[0] = mul(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    "/" => {
+                        result[0] = div(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    "%" => {
+                        result[0] = rem(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    _ => {}
+                }
+            }
+
+            let tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["*", "/", "%"].contains(&op.as_str())).collect();
+
+
+            for (i, (op, a, b)) in tail.iter().enumerate() {
+                match op.as_str() {
+                    "+" => {
+                        result[0] = add(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    "-" => {
+                        result[0] = sub(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    _ => {}
+                }
+            }
+            
+            let tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["+", "-"].contains(&op.as_str())).collect();
+
+
+            for (i, (op, a, b)) in tail.iter().enumerate() {
+                match op.as_str() {
+                    "isnt" => {
+                        result[0] = isnt(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    "is" => {
+                        result[0] = is(result[0].clone(), &result[1]);
+                        result.remove(1);
+                    },
+                    _ => {}
+                }
+            }
+            
+            result[0].clone()
+        }
+    },
+}
+
+
+FunctionDef: FunctionDef = {
+    "fn" <name:StaticName> <args:List<"(", Ident, ",", ")">> "=>" <e:Expr> => {
+        FunctionDef(name, Function(args, vec![e]))
+    },
+    "fn" <name:StaticName> <args:List<"(", Ident, ",", ")">> "{" <body:Body> "}" => {
+        FunctionDef(name, Function(args, body))
+    },
+}
+
+Function: Function = {
+    <l:List<"|", Ident, ",", "|">> "{" <body:Body> "}" => Function(l, body),
+}
+
+
+HeadValue: FirstValue = {
+    StaticName => <>,
+    Literal => FirstValue::Literal(<>),
+    "(" <v:Value> ")" => FirstValue::Group(Box::new(v))
+}
+
+Literal: Literal = {
+    Str => Literal::String(<>),
+    Num => Literal::Number(Number(<>)),
+    "@" <i:Ident> => Literal::ForeignFunction(i),
+    Function => Literal::Function(<>),
+    ListLiteral => Literal::List(<>),
+}
+
+ListLiteral: List = {
+    List<"[", Value, ",", "]"> => List(<>)
+}
+
+TailValue: SecondValue = {
+    "." <i:Ident> => {
+        let Identifier(string) = i;
+        SecondValue::DotName(DotName(string))
+    },
+    "[" <v:Value> "]" => {
+        SecondValue::IndexedName(IndexedName(v.lower()))
+    },
+    <args: List<"(", Value, ",", ")">> => SecondValue::Call(Call(args)),
+}
+
+Infix<First, Operator, Second>: (First, Operator, Second) = {
+    <first:First> <op: Operator> <second:Second> => {
+        (<>)
+    }
+}
+
+StaticName: FirstValue = {
+    ScopedName => FirstValue::ScopedName(<>),
+    Ident => FirstValue::Identifier(<>),
+}
+
+#[inline]
+ScopedName: ScopedName = {
+    <head: Ident> <tail:("::" <Ident>)+> => {
+        let mut name = vec![];
+        let Identifier(string) = head;
+        name.push(string);
+        for ident in tail {
+            let Identifier(string) = ident;
+            name.push(string);
+        }
+        ScopedName(name)
+    }
+}
+
+List<Begin, T, Sep, End>: Vec<T> = {
+    <first:Begin> <list: (<T> <Sep>)*> <end:T?> <last:End> => {
+        match end {
+            None => list.iter().map(|(v, s)| v.clone()).collect(),
+            Some(val) => {
+                let mut list: Vec<_> = list.iter().map(|(v, s)| v.clone()).collect();
+                list.push(val);
+                list
+            }
+        }
+    }
+}
