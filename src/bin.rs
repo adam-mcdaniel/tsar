@@ -1,6 +1,6 @@
 use clap::{clap_app, crate_authors, crate_version, AppSettings::ArgRequiredElseHelp};
 use tsar::cmd::{build, create};
-use xassembler::Golang;
+use xassembler::{Golang, Rust};
 
 fn main() {
     let matches = clap_app!(tsar =>
@@ -38,13 +38,27 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("build") {
         match build::<Golang>(false) {
             Ok(()) => println!("Successfully built package"),
-            Err(e) => eprintln!("{}", e)
+            Err(e) => {
+                eprintln!("{}", e);
+                eprintln!("Attempting to use Rust backend instead");
+                if let Err(e) = build::<Rust>(true) {
+                    eprintln!("{}", e);
+                    eprintln!("Aborting");
+                } else {
+                    println!("Successfully built package");
+                }
+            }
         }
     }
 
     if let Some(_) = matches.subcommand_matches("run") {
         if let Err(e) = build::<Golang>(true) {
             eprintln!("{}", e);
+            eprintln!("Attempting to use Rust backend instead");
+            if let Err(e) = build::<Rust>(true) {
+                eprintln!("{}", e);
+                eprintln!("Aborting");
+            }
         }
     }
 }
