@@ -41,7 +41,7 @@ fn main() {
             Err(e) => {
                 eprintln!("{}", e);
                 eprintln!("Attempting to use Rust backend instead");
-                if let Err(e) = build::<Rust>(true) {
+                if let Err(e) = build::<Rust>(false) {
                     eprintln!("{}", e);
                     eprintln!("Aborting");
                 } else {
