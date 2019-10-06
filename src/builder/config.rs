@@ -9,19 +9,6 @@ use crate::{
     builder::{FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, OUTPUT_BUILD_DIR, SOURCE_FOLDER},
 };
 
-/// Possible backends to support
-#[derive(Serialize, Deserialize, Debug)]
-pub enum SupportedBackend {
-    Go,
-    Rust,
-}
-
-/// Supported backends (Go, Rust)
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Backends {
-    supported: Vec<SupportedBackend>,
-}
-
 /// The package info: Name, Version, Authors
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Package {
@@ -35,7 +22,6 @@ pub struct Package {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     package: Package,
-    backends: Backends,
     dependencies: HashMap<String, String>,
 }
 

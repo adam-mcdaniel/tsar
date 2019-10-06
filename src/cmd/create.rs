@@ -22,9 +22,6 @@ version = \"0.0.1\"
 include = []
 authors = []
 
-[backends]
-supported = [\"Rust\", \"Go\"]
-
 [dependencies]
 core = \"https://github.com/adam-mcdaniel/tsar-core\"
 ",
