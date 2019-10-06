@@ -27,15 +27,27 @@ pub struct Config {
 
 impl Config {
     /// Create new config object from TOML script
-    pub fn new(text: &str) -> Self {
-        let config: Self = toml::from_str(text).unwrap();
-        config
+    pub fn new(text: &str) -> Result<Self, String> {
+        // let config: Self = toml::from_str(text);
+        // config
+        let config: Self = match toml::from_str(text) {
+            Ok(c) => Ok(c),
+            Err(e) => {
+                if let Some(line_col) = e.line_col() {
+                    Err(format!("Error parsing toml, failed to parse line `{}`", text.lines().nth(line_col.0).unwrap()))
+                } else {
+                    Err(format!("Error parsing toml"))
+                }
+            }
+        }?;
+
+        Ok(config)
     }
 
     /// Create new config object from TOML file
     pub fn from_file(path: &str) -> Result<Self, String> {
         match std::fs::read_to_string(path) {
-            Ok(contents) => Ok(Self::new(&contents)),
+            Ok(contents) => Ok(Self::new(&contents)?),
             Err(_) => Err(format!("Could not open file `{}`", path)),
         }
     }
@@ -78,6 +90,7 @@ impl Config {
         match remove_dir_all(primary_build_dir) {
             _ => {}
         };
+        
         match create_dir_all(primary_build_dir) {
             Ok(_) => {}
             Err(_) => {
