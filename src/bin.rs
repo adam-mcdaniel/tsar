@@ -40,11 +40,7 @@ fn main() {
             Ok(()) => println!("Successfully built package"),
             Err(e) => {
                 eprintln!("{}", e);
-                eprintln!("Attempting to use Rust backend instead");
-                if let Err(e) = build::<Rust>(false) {
-                    eprintln!("{}", e);
-                    eprintln!("Aborting");
-                } else {
+                if let Ok(_) = build::<Rust>(false) {
                     println!("Successfully built package");
                 }
             }
@@ -53,11 +49,8 @@ fn main() {
 
     if let Some(_) = matches.subcommand_matches("run") {
         if let Err(e) = build::<Golang>(true) {
-            eprintln!("{}", e);
-            eprintln!("Attempting to use Rust backend instead");
-            if let Err(e) = build::<Rust>(true) {
+            if let Err(_) = build::<Rust>(true) {
                 eprintln!("{}", e);
-                eprintln!("Aborting");
             }
         }
     }

@@ -57,6 +57,18 @@ pub Import: Import = {
             imports: vec![import_name]
         }
     },
+    "use" <module: Ident> "::" <import_names: List<"{", Ident, ",", "}">> => {
+        let Identifier(module_name) = module;
+        let imports = import_names.iter().map(|i| {
+            let Identifier(s) = i;
+            s.to_string()
+        }).collect::<Vec<String>>();
+        
+        Import {
+            module: ScopedName(vec![module_name]),
+            imports
+        }
+    },
     "use" <module: ScopedName> "::" <import_names: List<"{", Ident, ",", "}">> => {
         let imports = import_names.iter().map(|i| {
             let Identifier(s) = i;
