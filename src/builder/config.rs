@@ -3,10 +3,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_to_string, remove_dir_all};
 use url::Url;
+use fs_extra::dir::{copy, CopyOptions};
 
 use crate::{
     assembler::{format_error, lower::Lower, parser::ProgramParser},
-    builder::{FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, OUTPUT_BUILD_DIR, SOURCE_FOLDER},
+    builder::{FOREIGN_FOLDER, FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, OUTPUT_BUILD_DIR, SOURCE_FOLDER},
 };
 
 /// The package info: Name, Version, Authors
@@ -16,6 +17,7 @@ pub struct Package {
     version: String,
     authors: Vec<String>,
     include: Vec<String>,
+    foreign: Vec<String>,
 }
 
 /// This is the main file, the actual TOML
@@ -76,7 +78,13 @@ impl Config {
         Ok(result)
     }
 
-    pub fn build(&self, package_path: Option<&str>) -> Result<String, String> {
+    pub fn build(&self, package_path: Option<&str>, base_build_dir: &str) -> Result<(String, Vec<String>), String> {
+        let mut copy_opts = CopyOptions::new();
+        copy_opts.overwrite = true;
+
+        // Foreign packages required for building
+        let mut foreign_package_names = self.package.foreign.clone();
+
         // This is the final product to be built by XASM
         let mut result_xasm_script = String::from("");
 
@@ -124,8 +132,12 @@ impl Config {
                                 return Err(format!("Reused dependency `{}`", dep));
                             }
                         }
+
                         // Add the built dependency to the script
-                        result_xasm_script += &package.build(Some(&path))?;
+                        let build_output = package.build(Some(&path), base_build_dir)?;
+
+                        result_xasm_script += &build_output.0;
+                        foreign_package_names.extend(build_output.1);
                     }
                     Err(_) => return Err(format!("Could not clone git repository from `{}`", url)),
                 };
@@ -134,6 +146,14 @@ impl Config {
                 return Err(format!("`{}` is not a valid url", url));
             }
         }
+
+        for foreign_package in &self.package.foreign {
+            let from = format!("{}{}/{}", prefix, FOREIGN_FOLDER, foreign_package);
+            if let Err(_) = copy(&from, base_build_dir, &copy_opts) {
+                return Err(format!("Could not copy foreign package from `{}` to `{}`", from, base_build_dir))
+            }
+        }
+
 
         let assemble_path = match package_path {
             Some(path) => path,
@@ -145,6 +165,6 @@ impl Config {
             Err(e) => return Err(format!("Error while compiling package `{}` -->\n{}", self.package.name, e))
         }
 
-        Ok(result_xasm_script)
+        Ok((result_xasm_script, foreign_package_names))
     }
 }

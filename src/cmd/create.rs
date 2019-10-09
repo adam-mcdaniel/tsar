@@ -1,4 +1,4 @@
-use crate::builder::{FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER};
+use crate::builder::{FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER, FOREIGN_FOLDER};
 use std::fs::{create_dir_all, write};
 use std::path::Path;
 
@@ -19,8 +19,9 @@ pub fn create(name: &str) -> Result<(), String> {
             "[package]
 name = \"{}\"
 version = \"0.0.1\"
-include = []
 authors = []
+include = []
+foreign = []
 
 [dependencies]
 core = \"https://github.com/adam-mcdaniel/tsar-core\"
@@ -35,6 +36,13 @@ core = \"https://github.com/adam-mcdaniel/tsar-core\"
         return Err(format!(
             "Could not make `{}` directory when creating package `{}`",
             SOURCE_FOLDER, name
+        ));
+    }
+
+    if let Err(_) = create_dir_all(format!("{}/{}", name, FOREIGN_FOLDER)) {
+        return Err(format!(
+            "Could not make `{}` directory when creating package `{}`",
+            FOREIGN_FOLDER, name
         ));
     }
 
