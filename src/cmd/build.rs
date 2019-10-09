@@ -1,5 +1,5 @@
 use crate::{
-    builder::{Config, INPUT_TOML, OUTPUT_BUILD_DIR, FOREIGN_FOLDER}
+    builder::{Config, INPUT_TOML, OUTPUT_BUILD_DIR}
 };
 use std::fs::write;
 use xasm::compile::Compile;
