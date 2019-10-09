@@ -24,6 +24,7 @@ include = []
 foreign = []
 
 [dependencies]
+std = \"https://github.com/adam-mcdaniel/tsar-std\"
 core = \"https://github.com/adam-mcdaniel/tsar-core\"
 ",
             name
