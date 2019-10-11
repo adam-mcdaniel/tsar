@@ -1,6 +1,6 @@
 [package]
 name = "tsar"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["adam-mcdaniel <adam.mcdaniel17@gmail.com>"]
 edition = "2018"
 description = "Tsar programming language"
@@ -26,6 +26,6 @@ serde_derive = "1.0.101"
 git2 = "0.10.1"
 url = "2.1.0"
 clap = "2.33.0"
-xasm = "0.5.0"
-xassembler = "0.5.0"
+xasm = "0.5.1"
+xassembler = "0.5.1"
 fs_extra = "1.1"
