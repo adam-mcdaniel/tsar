@@ -35,14 +35,15 @@ fn main() {
         };
     }
 
+
     if let Some(_) = matches.subcommand_matches("build") {
         match build::<Golang>(false) {
             Ok(()) => println!("Successfully built package"),
             Err(e) => {
+                eprintln!("{}", e);
+                println!("Using Rust to build package as a fallback...");
                 if let Ok(_) = build::<Rust>(false) {
                     println!("Successfully built package");
-                } else {
-                    eprintln!("{}", e);
                 }
             }
         }
@@ -50,7 +51,9 @@ fn main() {
 
     if let Some(_) = matches.subcommand_matches("run") {
         if let Err(e) = build::<Golang>(true) {
-            if let Err(_) = build::<Rust>(true) {
+            eprintln!("{}", e);
+            println!("Using Rust to build package as a fallback...");
+            if let Err(e) = build::<Rust>(true) {
                 eprintln!("{}", e);
             }
         }
