@@ -39,9 +39,10 @@ fn main() {
         match build::<Golang>(false) {
             Ok(()) => println!("Successfully built package"),
             Err(e) => {
-                eprintln!("{}", e);
                 if let Ok(_) = build::<Rust>(false) {
                     println!("Successfully built package");
+                } else {
+                    eprintln!("{}", e);
                 }
             }
         }
