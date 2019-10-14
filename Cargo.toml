@@ -1,6 +1,6 @@
 [package]
 name = "tsar"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["adam-mcdaniel <adam.mcdaniel17@gmail.com>"]
 edition = "2018"
 description = "Tsar programming language"
@@ -29,3 +29,4 @@ clap = "2.33"
 xasm = "0.5.3"
 xassembler = "0.5.1"
 fs_extra = "1.1"
+remove_dir_all = "0.5.2"

@@ -1,9 +1,12 @@
 use git2::Repository;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::{create_dir_all, read_to_string, remove_dir_all};
+use std::fs::{create_dir_all, read_to_string};
 use url::Url;
 use fs_extra::dir::{copy, CopyOptions};
+
+extern crate remove_dir_all;
+use remove_dir_all::remove_dir_all;
 
 use crate::{
     assembler::{format_error, lower::Lower, parser::ProgramParser},
