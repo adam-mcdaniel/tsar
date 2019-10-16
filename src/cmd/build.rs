@@ -3,6 +3,7 @@ use crate::{
 };
 use std::fs::write;
 use xasm::compile::Compile;
+use std::env::consts::EXE_SUFFIX;
 
 
 pub fn build<T: Compile>(run: bool) -> Result<(), String> {
@@ -24,7 +25,7 @@ pub fn build<T: Compile>(run: bool) -> Result<(), String> {
             return Err(format!("Internal compiler error:\n{}", e));
         }
     } else {
-        if let Err(e) = T::compile_subcommand(&compiled, foreign_package_paths.iter().map(|s| &s[..]).collect(), &format!("{}/{}", OUTPUT_BUILD_DIR, "main")) {
+        if let Err(e) = T::compile_subcommand(&compiled, foreign_package_paths.iter().map(|s| &s[..]).collect(), &format!("{}/{}{}", OUTPUT_BUILD_DIR, "bin", , EXE_SUFFIX)) {
             return Err(format!("Internal compiler error:\n{}", e));
         }
     }
