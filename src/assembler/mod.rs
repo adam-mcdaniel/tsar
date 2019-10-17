@@ -12,11 +12,12 @@ pub fn make_error(
     column_number: usize,
 ) -> String {
     format!(
-        "  |
+        "{WS} |
 {line_number} | {line}
-  | {underline}
-  |
-  = unexpected `{unexpected}`",
+{WS} | {underline}
+{WS} |
+{WS} = unexpected `{unexpected}`",
+        WS = " ".repeat(line_number.to_string().len()),
         line_number = line_number,
         line = script.lines().nth(line_number - 1).unwrap(),
         underline = format!(
@@ -58,9 +59,7 @@ pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String 
             let (line_number, line, column) = get_line(script, location);
             make_error(script, &line, line_number, column)
         }
-        Error::UnrecognizedEOF {
-            location, ..
-        } => {
+        Error::UnrecognizedEOF { location, .. } => {
             let (line_number, line, _) = get_line(script, location);
             make_error(script, "EOF", line_number, line.len())
         }

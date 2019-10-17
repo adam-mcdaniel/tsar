@@ -1,7 +1,6 @@
-use crate::builder::{FILE_EXTENSION, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER, FOREIGN_FOLDER};
+use crate::builder::{FILE_EXTENSION, FOREIGN_FOLDER, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER};
 use std::fs::{create_dir_all, write};
 use std::path::Path;
-
 
 pub fn create(name: &str) -> Result<(), String> {
     let toml_path = format!("{}/{}.toml", name, INPUT_TOML);
@@ -10,7 +9,7 @@ pub fn create(name: &str) -> Result<(), String> {
     }
 
     if let Err(_) = create_dir_all(name) {
-        return Err(format!("Could not create folder `{}`", name));
+        return Err(format!("Could not create folder \"{}\"", name));
     }
 
     if let Err(_) = write(
@@ -29,19 +28,19 @@ std = \"https://github.com/adam-mcdaniel/tsar-std\"
             name
         ),
     ) {
-        return Err(format!("Could not write to file `{}`", toml_path));
+        return Err(format!("Could not write to file \"{}\"", toml_path));
     }
 
     if let Err(_) = create_dir_all(format!("{}/{}", name, SOURCE_FOLDER)) {
         return Err(format!(
-            "Could not make `{}` directory when creating package `{}`",
+            "Could not make \"{}\" directory when creating package \"{}\"",
             SOURCE_FOLDER, name
         ));
     }
 
     if let Err(_) = create_dir_all(format!("{}/{}", name, FOREIGN_FOLDER)) {
         return Err(format!(
-            "Could not make `{}` directory when creating package `{}`",
+            "Could not make \"{}\" directory when creating package \"{}\"",
             FOREIGN_FOLDER, name
         ));
     }
