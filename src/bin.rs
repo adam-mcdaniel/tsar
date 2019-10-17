@@ -3,7 +3,6 @@ use tsar::{
     cmd::{build, create},
     log::build::{error, finished},
 };
-use xassembler::Golang;
 
 fn main() {
     let matches = clap_app!(tsar =>
@@ -34,21 +33,21 @@ fn main() {
         let name = matches.value_of("name").unwrap();
         match create(name) {
             Ok(_) => finished(format!("creating package \"{}\"", name)),
-            Err(e) => error(format!("Failed to create package \"{}\": {}", name, e)),
+            Err(e) => error(format!("Failed to create package \"{}\": {}", name, e))
         };
     }
 
     if let Some(_) = matches.subcommand_matches("build") {
-        match build::<Golang>(false) {
+        match build(false) {
             Ok(_) => finished("building package"),
-            Err(e) => error(e),
+            Err(e) => error(e)
         }
     }
 
     if let Some(_) = matches.subcommand_matches("run") {
-        match build::<Golang>(true) {
+        match build(true) {
             Ok(_) => finished("running package"),
-            Err(e) => error(e),
+            Err(e) => error(e)
         } 
     }
 }

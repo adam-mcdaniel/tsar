@@ -1,4 +1,4 @@
-use crate::log::color::{green, magenta, red, white};
+use crate::log::color::{green, magenta, red, white, yellow};
 use std::fmt::Display;
 
 pub fn info(action: impl Display, subject: impl Display) {
@@ -25,7 +25,11 @@ pub fn building(module: impl Display) {
 }
 
 pub fn finished(task: impl Display) {
-    info("Finished", task)
+    println!("  {} {}", green("Finished"), white(task));
+}
+
+pub fn warning(warning: impl Display) {
+    println!("    {} {}", yellow("Warning:"), white(warning));
 }
 
 pub fn importing(module: impl Display) {
