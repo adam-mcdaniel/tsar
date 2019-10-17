@@ -82,11 +82,9 @@ impl Config {
             match read_to_string(&path) {
                 Ok(script) => match ProgramParser::new().parse(&script) {
                     Ok(parsed) => result += &parsed.lower(),
-                    Err(e) => return Err(format_error(&script, e))
+                    Err(e) => return Err(format_error(&script, e)),
                 },
-                Err(_) => {
-                    return Err(format!("Could not open file \"{}\"", &path))
-                },
+                Err(_) => return Err(format!("Could not open file \"{}\"", &path)),
             }
         }
 

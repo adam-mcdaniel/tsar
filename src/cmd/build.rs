@@ -7,7 +7,6 @@ use std::fs::write;
 use xasm::compile::Compile;
 use xassembler::{Golang, Rust};
 
-
 pub fn build(execute: bool) -> Result<(), String> {
     info("Reading", "toml");
 
@@ -38,23 +37,22 @@ pub fn build(execute: bool) -> Result<(), String> {
     Ok(())
 }
 
-
 fn run(output_script: String, foreign_package_paths: Vec<String>) -> Result<(), String> {
     if let Err(e) = run_xasm::<Golang>(&output_script, &foreign_package_paths) {
         if let Err(_) = run_xasm::<Rust>(&output_script, &foreign_package_paths) {
-            return Err(e)
+            return Err(e);
         } else {
             warning("Go build failed, but Rust build succeeded")
         }
     }
-    
+
     Ok(())
 }
 
 fn compile(output_script: String, foreign_package_paths: Vec<String>) -> Result<(), String> {
     if let Err(e) = compile_xasm::<Golang>(&output_script, &foreign_package_paths) {
         if let Err(_) = compile_xasm::<Rust>(&output_script, &foreign_package_paths) {
-            return Err(e)
+            return Err(e);
         } else {
             warning("Go build failed, but Rust build succeeded")
         }
@@ -63,8 +61,10 @@ fn compile(output_script: String, foreign_package_paths: Vec<String>) -> Result<
     Ok(())
 }
 
-
-fn run_xasm<T: Compile>(output_script: &str, foreign_package_paths: &Vec<String>) -> Result<(), String> {
+fn run_xasm<T: Compile>(
+    output_script: &str,
+    foreign_package_paths: &Vec<String>,
+) -> Result<(), String> {
     let compiled = T::assemble(&output_script)?;
 
     if let Err(e) = T::run_subcommand(
@@ -77,7 +77,10 @@ fn run_xasm<T: Compile>(output_script: &str, foreign_package_paths: &Vec<String>
     Ok(())
 }
 
-fn compile_xasm<T: Compile>(output_script: &str, foreign_package_paths: &Vec<String>) -> Result<(), String> {
+fn compile_xasm<T: Compile>(
+    output_script: &str,
+    foreign_package_paths: &Vec<String>,
+) -> Result<(), String> {
     let compiled = T::assemble(&output_script)?;
 
     if let Err(e) = T::compile_subcommand(

@@ -1,7 +1,7 @@
 use clap::{clap_app, crate_authors, crate_version, AppSettings::ArgRequiredElseHelp};
 use tsar::{
     cmd::{build, create},
-    log::build::{error, finished},
+    log::build::{error, finished, version},
 };
 
 fn main() {
@@ -33,21 +33,23 @@ fn main() {
         let name = matches.value_of("name").unwrap();
         match create(name) {
             Ok(_) => finished(format!("creating package \"{}\"", name)),
-            Err(e) => error(format!("Failed to create package \"{}\": {}", name, e))
+            Err(e) => error(format!("Failed to create package \"{}\": {}", name, e)),
         };
-    }
+    } else {
+        version();
 
-    if let Some(_) = matches.subcommand_matches("build") {
-        match build(false) {
-            Ok(_) => finished("building package"),
-            Err(e) => error(e)
+        if let Some(_) = matches.subcommand_matches("build") {
+            match build(false) {
+                Ok(_) => finished("building package"),
+                Err(e) => error(e),
+            }
         }
-    }
 
-    if let Some(_) = matches.subcommand_matches("run") {
-        match build(true) {
-            Ok(_) => finished("running package"),
-            Err(e) => error(e)
-        } 
+        if let Some(_) = matches.subcommand_matches("run") {
+            match build(true) {
+                Ok(_) => finished("running package"),
+                Err(e) => error(e),
+            }
+        }
     }
 }

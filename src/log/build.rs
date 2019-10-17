@@ -1,5 +1,10 @@
 use crate::log::color::{green, magenta, red, white, yellow};
+use clap::crate_version;
 use std::fmt::Display;
+
+pub fn version() {
+    println!("{}", white(format!("tsar version {}", crate_version!())));
+}
 
 pub fn info(action: impl Display, subject: impl Display) {
     println!("  {} {}{}", green(action), white(subject), white("..."));
@@ -29,7 +34,7 @@ pub fn finished(task: impl Display) {
 }
 
 pub fn warning(warning: impl Display) {
-    println!("    {} {}", yellow("Warning:"), white(warning));
+    println!("    {}{} {}", yellow("Warning"), white(":"), white(warning));
 }
 
 pub fn importing(module: impl Display) {
@@ -49,7 +54,7 @@ pub fn error(error: impl Display) {
     } else {
         let e = match e.to_string().chars().nth(0) {
             Some(ch) => ch.to_lowercase().to_string() + &e[1..],
-            None => String::from("")
+            None => String::from(""),
         };
         eprintln!("{}{} {}", red("Error"), white(":"), white(e));
     }
