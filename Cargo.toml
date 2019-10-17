@@ -1,6 +1,6 @@
 [package]
 name = "tsar"
-version = "0.2.4"
+version = "0.2.8"
 authors = ["adam-mcdaniel <adam.mcdaniel17@gmail.com>"]
 edition = "2018"
 description = "Tsar programming language"
@@ -12,7 +12,6 @@ repository = "https://github.com/adam-mcdaniel/tsar"
 [[bin]]
 name = "tsar"
 path = "src/bin.rs"
-
 
 [build-dependencies] # <-- We added this and everything after!
 lalrpop = "0.17.2"
@@ -26,7 +25,8 @@ serde_derive = "1.0"
 git2 = "0.10"
 url = "2.1"
 clap = "2.33"
-xasm = "0.5.3"
+xasm = "0.5.5"
 xassembler = "0.5.1"
+crossterm = "0.11"
 fs_extra = "1.1"
 remove_dir_all = "0.5.2"

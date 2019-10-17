@@ -1,6 +1,8 @@
 use clap::{clap_app, crate_authors, crate_version, AppSettings::ArgRequiredElseHelp};
-use tsar::cmd::{build, create};
-use xassembler::{Golang, Rust};
+use tsar::{
+    cmd::{build, create},
+    log::build::{error, finished, version},
+};
 
 fn main() {
     let matches = clap_app!(tsar =>
@@ -30,27 +32,23 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("new") {
         let name = matches.value_of("name").unwrap();
         match create(name) {
-            Ok(_) => println!("Successfully created package `{}`", name),
-            Err(e) => eprintln!("Failed to create package `{}`: {}", name, e),
+            Ok(_) => finished(format!("creating package \"{}\"", name)),
+            Err(e) => error(format!("Failed to create package \"{}\": {}", name, e)),
         };
-    }
+    } else {
+        version();
 
-    if let Some(_) = matches.subcommand_matches("build") {
-        match build::<Golang>(false) {
-            Ok(()) => println!("Successfully built package"),
-            Err(e) => {
-                eprintln!("{}", e);
-                if let Ok(_) = build::<Rust>(false) {
-                    println!("Successfully built package");
-                }
+        if let Some(_) = matches.subcommand_matches("build") {
+            match build(false) {
+                Ok(_) => finished("building package"),
+                Err(e) => error(e),
             }
         }
-    }
 
-    if let Some(_) = matches.subcommand_matches("run") {
-        if let Err(e) = build::<Golang>(true) {
-            if let Err(_) = build::<Rust>(true) {
-                eprintln!("{}", e);
+        if let Some(_) = matches.subcommand_matches("run") {
+            match build(true) {
+                Ok(_) => finished("running package"),
+                Err(e) => error(e),
             }
         }
     }
