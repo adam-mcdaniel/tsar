@@ -1,4 +1,7 @@
-use crate::builder::{FILE_EXTENSION, FOREIGN_FOLDER, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER};
+use crate::{
+    builder::{FILE_EXTENSION, FOREIGN_FOLDER, INPUT_TOML, MAIN_FILE_NAME, SOURCE_FOLDER},
+    cmd::GITIGNORE,
+};
 use std::fs::{create_dir_all, write};
 use std::path::Path;
 
@@ -29,6 +32,10 @@ std = \"https://github.com/adam-mcdaniel/tsar-std\"
         ),
     ) {
         return Err(format!("Could not write to file \"{}\"", toml_path));
+    }
+
+    if let Err(_) = write(".gitignore", GITIGNORE) {
+        return Err(String::from("Could not write gitignore"));
     }
 
     if let Err(_) = create_dir_all(format!("{}/{}", name, SOURCE_FOLDER)) {
