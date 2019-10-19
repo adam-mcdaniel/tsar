@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.17.2"
-// sha256: b6673da0eb21f62ecd48db42e43d8a59c4ed5c331b3e7079c951d68922204b
+// sha256: 84b14966c5b9997931f84d29c15296396a9230aeaca16968fb9ee6cc87eeae
 use crate::assembler::{
     lower::Lower,
     tokens::{
