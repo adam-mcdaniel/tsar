@@ -34,7 +34,7 @@ std = \"https://github.com/adam-mcdaniel/tsar-std\"
         return Err(format!("Could not write to file \"{}\"", toml_path));
     }
 
-    if let Err(_) = write(".gitignore", GITIGNORE) {
+    if let Err(_) = write(format!("{}/.gitignore", name), GITIGNORE) {
         return Err(String::from("Could not write gitignore"));
     }
 
