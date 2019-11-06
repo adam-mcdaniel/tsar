@@ -335,7 +335,7 @@ println(len([1, 2, 3]));
 This function returns a list with an object appended to the end.
 
 ```rust
-println(push([1], 2) is [1, 2]));
+println(push([1], 2) is [1, 2]);
 ```
 
 
