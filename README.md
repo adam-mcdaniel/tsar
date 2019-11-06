@@ -10,6 +10,7 @@ Tsar is a dynamically typed, ahead of time compiled programming language. Tsar t
 - Golang and Rust foreign function interface
 - Package management system
 - First class object and function programming
+- Pretty error messages
 - Rust inspired syntax
 - Python inspired programming
 
@@ -116,6 +117,11 @@ Now we can start programming!
 Although Tsar is meant to behave somewhat like Python, its syntax is inspired by Rust.
 
 ![Clock Example](resources/clock.png)
+
+If you do somehow make a syntactical mistake, Tsar will try to help correct you.
+
+![Error Message](resources/error_msg.png)
+
 
 ### Use statements
 
@@ -335,7 +341,7 @@ println(len([1, 2, 3]));
 This function returns a list with an object appended to the end.
 
 ```rust
-println(push([1], 2) is [1, 2]));
+println(push([1], 2) is [1, 2]);
 ```
 
 
@@ -401,7 +407,7 @@ println(filter([1, 2, 3, 4, 5], odd));
 ```
 
 
-#### Reduce
+#### reduce
 This function is used to reduce a list into an atomic value. Reduce takes a list, a function to reduce with (that takes two arguments itself), and an initial value.
 
 ```rust
