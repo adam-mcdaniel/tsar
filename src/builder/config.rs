@@ -82,7 +82,7 @@ impl Config {
             match read_to_string(&path) {
                 Ok(script) => match assemble(&script) {
                     Ok(assembled) => result += &assembled,
-                    Err(e) => return Err(e)
+                    Err(e) => return Err(e),
                 },
                 Err(_) => return Err(format!("Could not open file \"{}\"", &path)),
             }
