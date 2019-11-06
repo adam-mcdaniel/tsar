@@ -19,18 +19,18 @@ pub fn assemble(script: impl ToString) -> Result<String, String> {
 }
 
 pub fn make_error(
-    script: &str,
+    line: &str,
     unexpected: &str,
     line_number: usize,
     column_number: usize,
-) -> String {
-    let line = script.lines().nth(line_number - 1).unwrap();
-    
+) -> String {    
     let underline = format!(
         "{}^{}",
         " ".repeat(column_number),
         "-".repeat(unexpected.len() - 1)
     );
+
+    println!("{:#?}\n{:#?}\n{}", line, underline, column_number);
 
     format!(
         "{WS} |
@@ -56,15 +56,16 @@ fn get_line(script: &str, location: usize) -> (usize, String, usize) {
             let lines = script.lines().collect::<Vec<&str>>();
             lines[lines.len() - 1]
         }
-    };
+    }.trim();
 
     // Get the column number from the location
     let column = {
         let mut current_column = 0;
         for ch in script[..location].chars() {
-            current_column += 1;
             if ch == '\n' {
                 current_column = 0;
+            } else if ch != '\t' {
+                current_column += 1;
             }
         }
         current_column
@@ -77,28 +78,28 @@ pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String 
     match err {
         Error::InvalidToken { location } => {
             let (line_number, line, column) = get_line(script, location);
-            make_error(script, &line, line_number, column)
+            make_error(&line, &line, line_number, column)
         }
         Error::UnrecognizedEOF { location, .. } => {
             let (line_number, line, _) = get_line(script, location);
-            make_error(script, "EOF", line_number, line.len())
+            make_error(&line, "EOF", line_number, line.len())
         }
         Error::UnrecognizedToken { token, .. } => {
             let start = token.0;
             let end = token.2;
 
-            let (line_number, _, column) = get_line(script, start);
+            let (line_number, line, column) = get_line(script, start);
             let unexpected = &script[start..end];
-            make_error(script, unexpected, line_number, column)
+            make_error(&line, unexpected, line_number, column)
         }
         Error::ExtraToken { token } => {
             let start = token.0;
             let end = token.2;
 
-            let (line_number, _, column) = get_line(script, start);
+            let (line_number, line, column) = get_line(script, start);
             let unexpected = &script[start..end];
 
-            make_error(script, unexpected, line_number, column)
+            make_error(&line, unexpected, line_number, column)
         }
         Error::User { error } => format!(
             "  |\n? | {}\n  | {}\n  |\n  = unexpected compiling error",
