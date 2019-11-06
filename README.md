@@ -115,6 +115,8 @@ Now we can start programming!
 
 Although Tsar is meant to behave somewhat like Python, its syntax is inspired by Rust.
 
+![Clock Example](resources/clock.png)
+
 ### Use statements
 
 `Use` statements allow you to import objects from imported modules.
