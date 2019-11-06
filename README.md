@@ -10,6 +10,7 @@ Tsar is a dynamically typed, ahead of time compiled programming language. Tsar t
 - Golang and Rust foreign function interface
 - Package management system
 - First class object and function programming
+- Pretty error messages
 - Rust inspired syntax
 - Python inspired programming
 
