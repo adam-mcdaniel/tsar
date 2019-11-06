@@ -1,3 +1,5 @@
+use comment::python::strip;
+
 pub mod lower;
 pub mod parser;
 pub mod tokens;
@@ -7,7 +9,7 @@ type Error<T> = ParseError<usize, T, String>;
 
 pub fn assemble(script: impl ToString) -> Result<String, String> {
     use lower::Lower;
-    match parser::ProgramParser::new().parse(&script.to_string()) {
+    match parser::ProgramParser::new().parse(&strip(&script.to_string())?) {
         Ok(parsed) => Ok(parsed.lower()),
         Err(e) => Err(format_error(&script.to_string(), e))
     }
