@@ -90,7 +90,7 @@ pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String 
     match err {
         Error::InvalidToken { location } => {
             let (line_number, line, column) = get_line(script, location);
-            make_error(&line, &line, line_number, column)
+            make_error(&line, &(script.as_bytes()[location] as char).to_string(), line_number, column)
         }
         Error::UnrecognizedEOF { location, .. } => {
             let (line_number, line, _) = get_line(script, location);
