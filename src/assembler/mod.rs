@@ -97,6 +97,7 @@ pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String 
             make_error(&line, "EOF", line_number, line.len())
         }
         Error::UnrecognizedToken { token, .. } => {
+            // The start and end of the unrecognized token
             let start = token.0;
             let end = token.2;
 
@@ -105,6 +106,7 @@ pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String 
             make_error(&line, unexpected, line_number, column)
         }
         Error::ExtraToken { token } => {
+            // The start and end of the extra token
             let start = token.0;
             let end = token.2;
 
