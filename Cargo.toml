@@ -1,10 +1,11 @@
 [package]
 name = "tsar"
-version = "0.2.12"
+version = "0.2.13"
 authors = ["Adam McDaniel <adam.mcdaniel17@gmail.com>"]
 edition = "2018"
 description = "Tsar programming language"
 license = "MIT"
+readme = "README.md"
 documentation = "https://docs.rs/tsar"
 homepage = "https://github.com/adam-mcdaniel/tsar"
 repository = "https://github.com/adam-mcdaniel/tsar"
