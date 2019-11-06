@@ -7,6 +7,10 @@ pub mod tokens;
 use lalrpop_util::ParseError;
 type Error<T> = ParseError<usize, T, String>;
 
+/// This function is used to convert a string of Tsar code directly
+/// to the Xasm intermediate representation.
+///
+/// It strips comments, then attempts to parse.
 pub fn assemble(script: impl ToString) -> Result<String, String> {
     use lower::Lower;
     // We pass the code stripped with comments into the parser
@@ -18,20 +22,22 @@ pub fn assemble(script: impl ToString) -> Result<String, String> {
     }
 }
 
+/// This formats an error properly given the line, the `unexpected` token as a string,
+/// the line number, and the column number of the unexpected token.
 pub fn make_error(
     line: &str,
     unexpected: &str,
     line_number: usize,
     column_number: usize,
-) -> String {    
+) -> String {
+    // The string used to underline the unexpected token
     let underline = format!(
         "{}^{}",
         " ".repeat(column_number),
         "-".repeat(unexpected.len() - 1)
     );
 
-    println!("{:#?}\n{:#?}\n{}", line, underline, column_number);
-
+    // Format string properly and return
     format!(
         "{WS} |
 {line_number} | {line}
@@ -40,7 +46,8 @@ pub fn make_error(
 {WS} = unexpected `{unexpected}`",
         WS = " ".repeat(line_number.to_string().len()),
         line_number = line_number,
-        line = line, underline = underline,
+        line = line,
+        underline = underline,
         unexpected = unexpected
     )
 }
@@ -56,11 +63,14 @@ fn get_line(script: &str, location: usize) -> (usize, String, usize) {
             let lines = script.lines().collect::<Vec<&str>>();
             lines[lines.len() - 1]
         }
-    }.trim();
+    }
+    .trim();
 
     // Get the column number from the location
     let column = {
         let mut current_column = 0;
+        // For every character in the script until the location of the error,
+        // keep track of the column location
         for ch in script[..location].chars() {
             if ch == '\n' {
                 current_column = 0;
@@ -74,6 +84,8 @@ fn get_line(script: &str, location: usize) -> (usize, String, usize) {
     (line_number, String::from(line), column as usize)
 }
 
+/// This is used to take an LALRPOP error and convert
+/// it into a nicely formatted error message
 pub fn format_error<T: core::fmt::Debug>(script: &str, err: Error<T>) -> String {
     match err {
         Error::InvalidToken { location } => {
