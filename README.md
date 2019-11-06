@@ -118,6 +118,11 @@ Although Tsar is meant to behave somewhat like Python, its syntax is inspired by
 
 ![Clock Example](resources/clock.png)
 
+If you do somehow make a syntactical mistake, Tsar will try to help correct you.
+
+![Error Message](resources/error_msg.png)
+
+
 ### Use statements
 
 `Use` statements allow you to import objects from imported modules.
