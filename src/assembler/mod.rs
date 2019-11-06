@@ -30,7 +30,7 @@ pub fn make_error(
         "{}^{}",
         " ".repeat(column_number),
         "-".repeat(unexpected.len() - 1)
-    )
+    );
 
     format!(
         "{WS} |
