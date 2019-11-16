@@ -122,6 +122,19 @@ If you do somehow make a syntactical mistake, Tsar will try to help correct you.
 
 ![Error Message](resources/error_msg.png)
 
+### Comments
+
+Tsar uses C and C++ style comments.
+
+```rust
+// Im a comment!!
+/*
+    Im also a comment!
+*/
+
+println("Im not a comment!");
+```
+
 
 ### Use statements
 
