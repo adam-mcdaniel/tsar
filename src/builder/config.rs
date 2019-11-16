@@ -11,7 +11,7 @@ extern crate remove_dir_all;
 use remove_dir_all::remove_dir_all;
 
 use crate::{
-    assembler::{format_error, lower::Lower, parser::ProgramParser},
+    assembler::assemble,
     builder::{
         FILE_EXTENSION, FOREIGN_FOLDER, INPUT_TOML, MAIN_FILE_NAME, OUTPUT_BUILD_DIR, SOURCE_FOLDER,
     },
@@ -80,9 +80,9 @@ impl Config {
             );
 
             match read_to_string(&path) {
-                Ok(script) => match ProgramParser::new().parse(&script) {
-                    Ok(parsed) => result += &parsed.lower(),
-                    Err(e) => return Err(format_error(&script, e)),
+                Ok(script) => match assemble(&script) {
+                    Ok(assembled) => result += &assembled,
+                    Err(e) => return Err(e),
                 },
                 Err(_) => return Err(format!("Could not open file \"{}\"", &path)),
             }

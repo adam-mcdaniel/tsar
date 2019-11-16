@@ -5,7 +5,6 @@ use crate::{
 use std::fs::{create_dir_all, write};
 use std::path::Path;
 
-
 pub fn create(name: &str) -> Result<(), String> {
     let toml_path = format!("{}/{}.toml", name, INPUT_TOML);
     if Path::new(&toml_path).exists() {
@@ -31,7 +30,9 @@ std = \"https://github.com/adam-mcdaniel/tsar-std\"
 ",
             name
         ),
-    ).is_err() {
+    )
+    .is_err()
+    {
         return Err(format!("Could not write to file \"{}\"", toml_path));
     }
 
