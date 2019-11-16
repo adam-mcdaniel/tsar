@@ -169,6 +169,8 @@ pub Value: Value = {
         if tail.is_empty() {
             Value(val.0, val.1)
         } else {
+            let mut tail = tail;
+
             let to_value = |math| Value(FirstValue::Math(math), vec![]);
             let add = |a, b: &Value| to_value(Math::Add(Box::new(a), Box::new(b.clone())));
             let sub = |a, b: &Value| to_value(Math::Subtract(Box::new(a), Box::new(b.clone())));
@@ -180,61 +182,85 @@ pub Value: Value = {
 
             let mut result = vec![Value(val.0, val.1)];
             for (_, a, b) in tail.iter() {
-                let value = &Value(a.clone(), b.clone());
-                result.push(value.clone());
+                result.push(Value(a.clone(), b.clone()));
+            }
+
+            let mut modifying = true;
+            while modifying {
+            	modifying = false;
+	            for (i, (op, a, b)) in tail.iter().enumerate() {
+	                match op.as_str() {
+	                    "*" => {
+	                        result[i] = mul(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+   	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    "/" => {
+	                        result[i] = div(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+   	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    "%" => {
+	                        result[i] = rem(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+   	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    _ => {}
+	                }
+	            }
             }
             
-            for (i, (op, a, b)) in tail.iter().enumerate() {
-                match op.as_str() {
-                    "*" => {
-                        result[0] = mul(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    "/" => {
-                        result[0] = div(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    "%" => {
-                        result[0] = rem(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    _ => {}
-                }
-            }
+            let mut tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["*", "/", "%"].contains(&op.as_str())).collect();
 
-            let tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["*", "/", "%"].contains(&op.as_str())).collect();
-
-
-            for (i, (op, a, b)) in tail.iter().enumerate() {
-                match op.as_str() {
-                    "+" => {
-                        result[0] = add(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    "-" => {
-                        result[0] = sub(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    _ => {}
-                }
-            }
+            modifying = true;
+			while modifying {
+                modifying = false;
+				for (i, (op, a, b)) in tail.iter().enumerate() {
+	                match op.as_str() {
+	                    "+" => {
+	                        result[i] = add(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    "-" => {
+	                        result[i] = sub(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+   	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    _ => {}
+	                }
+				}
+			}
             
-            let tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["+", "-"].contains(&op.as_str())).collect();
+            let mut tail: Vec<_> = tail.iter().filter(|(op, _, _)| !["+", "-"].contains(&op.as_str())).collect();
 
 
-            for (i, (op, a, b)) in tail.iter().enumerate() {
-                match op.as_str() {
-                    "isnt" => {
-                        result[0] = isnt(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    "is" => {
-                        result[0] = is(result[0].clone(), &result[1]);
-                        result.remove(1);
-                    },
-                    _ => {}
-                }
-            }
+            modifying = true;
+			while modifying {
+                modifying = false;
+				for (i, (op, a, b)) in tail.iter().enumerate() {
+	                match op.as_str() {
+	                    "isnt" => {
+	                        result[i] = isnt(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    "is" => {
+	                        result[i] = is(result[i].clone(), &result[i+1]);
+	                        result.remove(i+1);
+   	                        tail.remove(i);
+	                        modifying = true; break;
+	                    },
+	                    _ => {}
+	                }
+				}
+			}
             
             result[0].clone()
         }
