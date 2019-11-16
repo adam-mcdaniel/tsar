@@ -182,10 +182,8 @@ pub Value: Value = {
 
             let mut result = vec![Value(val.0, val.1)];
             for (_, a, b) in tail.iter() {
-                let value = &Value(a.clone(), b.clone());
-                result.push(value.clone());
+                result.push(Value(a.clone(), b.clone()));
             }
-
 
             let mut modifying = true;
             while modifying {
