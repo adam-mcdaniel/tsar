@@ -2,7 +2,7 @@
 
 Tsar is a dynamically typed, ahead of time compiled programming language. Tsar targets the [Xasm intermediate representation](https://github.com/adam-mcdaniel/xasm), which can compile to either Golang or Rust. As a result, if a Tsar program fails to build with Golang (the primary target language), Rust is used as a fallback.
 
-![Rust Fallback](resources/rust_fallback.png)
+![Rust Fallback](assets/rust_fallback.png)
 
 ## Features
 
@@ -108,7 +108,7 @@ tsar build
 tsar run
 ```
 
-![Hello World!](resources/hello_world.png)
+![Hello World!](assets/hello_world.png)
 
 Now we can start programming!
 
@@ -116,11 +116,11 @@ Now we can start programming!
 
 Although Tsar is meant to behave somewhat like Python, its syntax is inspired by Rust.
 
-![Clock Example](resources/clock.png)
+![Clock Example](assets/clock.png)
 
 If you do somehow make a syntactical mistake, Tsar will try to help correct you.
 
-![Error Message](resources/error_msg.png)
+![Error Message](assets/error_msg.png)
 
 ### Comments
 

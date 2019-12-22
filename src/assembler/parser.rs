@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.17.2"
-// sha256: f2bd690b27354b56ee2357928910afc45ea16469d9a28757178058361d62
+// sha256: f3d6c1bb38a8906df89b113595f73c8137ad6ac47f7ed2386c1102a9b356265
 use crate::assembler::{
     lower::Lower,
     tokens::{ClassDef, Module, Program, Assignment, Identifier, Value, List, FirstValue, SecondValue, Literal, IndexedName, DotName, Call, Number, Math, ScopedName, Function, Expr, FunctionDef, Import}
@@ -77799,10 +77799,8 @@ fn __action42<
 
             let mut result = vec![Value(val.0, val.1)];
             for (_, a, b) in tail.iter() {
-                let value = &Value(a.clone(), b.clone());
-                result.push(value.clone());
+                result.push(Value(a.clone(), b.clone()));
             }
-
 
             let mut modifying = true;
             while modifying {
